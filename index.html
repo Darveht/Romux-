@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mundo 3D - Editor Lua</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.155.0/examples/js/controls/PointerLockControls.js"></script>
+</head>
+<body>
+    <!-- Pantalla de Inicio Estilo Uber -->
+    <div id="startScreen" class="start-screen">
+        <div class="uber-container">
+            <div class="logo-section">
+                <h1 class="app-title">Mundo 3D</h1>
+                <p class="app-subtitle">Crea y explora mundos con código Lua</p>
+            </div>
+            
+            <div class="code-editor-section">
+                <h3>Editor de Código Lua</h3>
+                <textarea id="luaEditor" class="lua-editor" placeholder="-- Escribe tu código Lua aquí
+function crearCubo()
+    -- Este código creará un cubo en el mundo 3D
+    print('Cubo creado!')
+end
+
+function moverJugador(x, y, z)
+    -- Mover el jugador a una posición
+    print('Moviendo jugador a:', x, y, z)
+end
+
+-- Ejecutar funciones
+crearCubo()
+moverJugador(0, 5, 0)"></textarea>
+                
+                <!-- Indicador de Estado -->
+                <div id="statusIndicator" class="status-indicator waiting">
+                    <span class="status-icon">⏳</span>
+                    <span class="status-text">Escribe tu código Lua y presiona "Crear Mundo"</span>
+                </div>
+                
+                <div class="button-container">
+                    <button id="createWorldBtn" class="uber-button primary">
+                        <span class="button-text">Crear Mundo</span>
+                        <div class="button-loader"></div>
+                    </button>
+                    <button id="playBtn" class="uber-button secondary" disabled>
+                        <span class="button-text">▶ Jugar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mundo 3D -->
+    <div id="gameWorld" class="game-world hidden">
+        <div id="instructions" class="instructions">
+            <div class="instruction-text">
+                <h3>Controles</h3>
+                <p><strong>WASD</strong> - Moverse</p>
+                <p><strong>Mouse</strong> - Mirar alrededor</p>
+                <p><strong>Espacio</strong> - Saltar</p>
+                <p><strong>ESC</strong> - Menú</p>
+                <p>Haz clic para comenzar</p>
+            </div>
+        </div>
+        
+        <div id="gameContainer" class="game-container"></div>
+        
+        <div id="gameUI" class="game-ui">
+            <div class="ui-panel">
+                <button id="backToEditorBtn" class="ui-button">← Editor</button>
+                <div class="world-info">
+                    <p>Mundo: <span id="worldStatus">Activo</span></p>
+                    <p>FPS: <span id="fpsCounter">60</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Generando mundo 3D...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
