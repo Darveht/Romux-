@@ -20,36 +20,7 @@
             
             <div class="code-editor-section">
                 <h3>Editor de Código Lua</h3>
-                <textarea id="luaEditor" class="lua-editor" placeholder="-- Escribe tu código Lua aquí
-function crearCubo()
-    -- Este código creará un cubo en el mundo 3D
-    print('Cubo creado!')
-end
-
-function crearEsfera()
-    -- Crear una esfera colorida
-    print('Esfera creada!')
-end
-
-function crearTorre()
-    -- Construir una torre de bloques
-    print('Torre construida!')
-end
-
-function cambiarColor()
-    -- Cambiar colores del mundo
-    print('Colores cambiados!')
-end
-
-function moverJugador(x, y, z)
-    -- Mover el jugador a una posición
-    print('Moviendo jugador a:', x, y, z)
-end
-
--- Ejecutar funciones
-crearCubo()
-crearEsfera()
-moverJugador(0, 10, 5)"></textarea>
+                <textarea id="luaEditor" class="lua-editor" placeholder="-- Escribe tu código Lua aquí"></textarea>
                 
                 <!-- Indicador de Estado -->
                 <div id="statusIndicator" class="status-indicator waiting">
@@ -72,16 +43,7 @@ moverJugador(0, 10, 5)"></textarea>
 
     <!-- Mundo 3D -->
     <div id="gameWorld" class="game-world hidden">
-        <div id="instructions" class="instructions">
-            <div class="instruction-text">
-                <h3>Controles</h3>
-                <p><strong>WASD</strong> - Moverse</p>
-                <p><strong>Mouse</strong> - Mirar alrededor</p>
-                <p><strong>Espacio</strong> - Saltar</p>
-                <p><strong>ESC</strong> - Menú</p>
-                <p>Haz clic para comenzar</p>
-            </div>
-        </div>
+        
         
         <div id="gameContainer" class="game-container"></div>
         

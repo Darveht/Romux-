@@ -35,10 +35,7 @@ class Mundo3D {
             this.backToEditor();
         });
 
-        // Instrucciones del juego
-        document.getElementById('instructions').addEventListener('click', () => {
-            this.startPointerLock();
-        });
+        
 
         // Editor de código con actualización de estado
         document.getElementById('luaEditor').addEventListener('input', (e) => {
@@ -443,18 +440,13 @@ class Mundo3D {
     }
 
     createBaseWorld() {
-        // Suelo
+        // Solo crear el suelo básico
         const floorGeometry = new THREE.PlaneGeometry(100, 100);
         const floorMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2;
         floor.receiveShadow = true;
         this.scene.add(floor);
-
-        // Cubos aleatorios
-        for (let i = 0; i < 10; i++) {
-            this.createRandomCube();
-        }
 
         // Skybox simple
         this.createSkybox();
@@ -493,95 +485,69 @@ class Mundo3D {
     }
 
     processLuaCode() {
-        // Procesamiento mejorado del código Lua
-        console.log('Procesando código Lua:', this.luaCode);
+        console.log('Procesando código Lua real:', this.luaCode);
         
-        // Crear una ventana de resultados para mostrar la ejecución
-        this.showLuaResults();
+        // Limpiar objetos previos (excepto suelo y skybox)
+        const objectsToRemove = [];
+        this.scene.children.forEach(child => {
+            if (child.userData.isUserCreated) {
+                objectsToRemove.push(child);
+            }
+        });
+        objectsToRemove.forEach(obj => this.scene.remove(obj));
         
-        let executedCommands = [];
+        // Analizar código Lua línea por línea
+        const lines = this.luaCode.split('\n');
         
-        // Procesar diferentes comandos Lua
-        if (this.luaCode.includes('crearCubo')) {
-            console.log('Ejecutando: crearCubo()');
-            this.createRandomCube();
-            executedCommands.push('✅ crearCubo() - Cubo creado exitosamente');
-        }
-        
-        if (this.luaCode.includes('moverJugador')) {
-            console.log('Ejecutando: moverJugador()');
-            this.camera.position.set(0, 10, 5);
-            executedCommands.push('✅ moverJugador() - Jugador movido a nueva posición');
-        }
-        
-        // Buscar más comandos Lua
-        if (this.luaCode.includes('crearEsfera')) {
-            this.createSphere();
-            executedCommands.push('✅ crearEsfera() - Esfera creada');
-        }
-        
-        if (this.luaCode.includes('cambiarColor')) {
-            this.changeWorldColors();
-            executedCommands.push('✅ cambiarColor() - Colores del mundo cambiados');
-        }
-        
-        if (this.luaCode.includes('crearTorre')) {
-            this.createTower();
-            executedCommands.push('✅ crearTorre() - Torre construida');
-        }
-        
-        // Contar líneas de código
-        const codeLines = this.luaCode.split('\n').filter(line => line.trim().length > 0);
-        executedCommands.push(`📊 ${codeLines.length} líneas de código procesadas`);
-        
-        // Mostrar resultados
-        this.displayLuaResults(executedCommands);
-    }
-    
-    showLuaResults() {
-        // Crear ventana de resultados si no existe
-        if (!document.getElementById('luaResults')) {
-            const resultsWindow = document.createElement('div');
-            resultsWindow.id = 'luaResults';
-            resultsWindow.className = 'lua-results';
-            resultsWindow.innerHTML = `
-                <div class="results-header">
-                    <h3>🌟 Resultados del Código Lua</h3>
-                    <button class="close-results">×</button>
-                </div>
-                <div class="results-content">
-                    <p>Procesando código...</p>
-                </div>
-            `;
-            document.body.appendChild(resultsWindow);
+        lines.forEach(line => {
+            line = line.trim();
             
-            // Cerrar ventana
-            resultsWindow.querySelector('.close-results').addEventListener('click', () => {
-                resultsWindow.remove();
-            });
-        }
+            // Crear cubo con parámetros específicos
+            const cuboMatch = line.match(/cubo\s*\(\s*([^,]+),\s*([^,]+),\s*([^)]+)\s*\)/i);
+            if (cuboMatch) {
+                const x = parseFloat(cuboMatch[1]) || 0;
+                const y = parseFloat(cuboMatch[2]) || 1;
+                const z = parseFloat(cuboMatch[3]) || 0;
+                this.createCuboAt(x, y, z);
+            }
+            
+            // Crear esfera con parámetros
+            const esferaMatch = line.match(/esfera\s*\(\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\s*\)/i);
+            if (esferaMatch) {
+                const x = parseFloat(esferaMatch[1]) || 0;
+                const y = parseFloat(esferaMatch[2]) || 1;
+                const z = parseFloat(esferaMatch[3]) || 0;
+                const radio = parseFloat(esferaMatch[4]) || 1;
+                this.createEsferaAt(x, y, z, radio);
+            }
+            
+            // Mover jugador
+            const moverMatch = line.match(/mover\s*\(\s*([^,]+),\s*([^,]+),\s*([^)]+)\s*\)/i);
+            if (moverMatch) {
+                const x = parseFloat(moverMatch[1]) || 0;
+                const y = parseFloat(moverMatch[2]) || 5;
+                const z = parseFloat(moverMatch[3]) || 0;
+                this.camera.position.set(x, y, z);
+            }
+            
+            // Crear línea de cubos
+            const lineaMatch = line.match(/linea\s*\(\s*([^,]+),\s*([^)]+)\s*\)/i);
+            if (lineaMatch) {
+                const cantidad = parseInt(lineaMatch[1]) || 1;
+                const direccion = lineaMatch[2].replace(/['"]/g, '').toLowerCase();
+                this.createLinea(cantidad, direccion);
+            }
+            
+            // Cambiar color del suelo
+            const colorMatch = line.match(/color_suelo\s*\(\s*([^)]+)\s*\)/i);
+            if (colorMatch) {
+                const color = colorMatch[1].replace(/['"]/g, '');
+                this.changeFloorColor(color);
+            }
+        });
     }
     
-    displayLuaResults(commands) {
-        const resultsWindow = document.getElementById('luaResults');
-        if (resultsWindow) {
-            const content = resultsWindow.querySelector('.results-content');
-            content.innerHTML = `
-                <div class="execution-summary">
-                    <h4>Ejecución Completada:</h4>
-                    ${commands.map(cmd => `<p class="result-line">${cmd}</p>`).join('')}
-                </div>
-                <div class="lua-tip">
-                    <strong>💡 Tip:</strong> Prueba agregando estos comandos a tu código Lua:
-                    <ul>
-                        <li><code>crearEsfera()</code> - Crea una esfera</li>
-                        <li><code>cambiarColor()</code> - Cambia los colores</li>
-                        <li><code>crearTorre()</code> - Construye una torre</li>
-                    </ul>
-                </div>
-            `;
-        }
-    }
+    
     
     createSphere() {
         const geometry = new THREE.SphereGeometry(2, 16, 16);
@@ -613,57 +579,72 @@ class Mundo3D {
         });
     }
     
-    createTower() {
-        const towerHeight = 5;
-        for (let i = 0; i < towerHeight; i++) {
-            const geometry = new THREE.BoxGeometry(2, 2, 2);
-            const material = new THREE.MeshLambertMaterial({
-                color: 0x8B4513 // Color marrón para la torre
-            });
-            const block = new THREE.Mesh(geometry, material);
-            
-            block.position.set(
-                10, // Posición fija en X
-                1 + (i * 2), // Apilar bloques
-                10 // Posición fija en Z
-            );
-            
-            block.castShadow = true;
-            block.receiveShadow = true;
-            this.scene.add(block);
+    createCuboAt(x, y, z) {
+        const geometry = new THREE.BoxGeometry(2, 2, 2);
+        const material = new THREE.MeshLambertMaterial({
+            color: Math.random() * 0xffffff
+        });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(x, y, z);
+        cube.castShadow = true;
+        cube.receiveShadow = true;
+        cube.userData.isUserCreated = true;
+        this.scene.add(cube);
+    }
+    
+    createEsferaAt(x, y, z, radio) {
+        const geometry = new THREE.SphereGeometry(radio, 16, 16);
+        const material = new THREE.MeshLambertMaterial({
+            color: Math.random() * 0xffffff
+        });
+        const sphere = new THREE.Mesh(geometry, material);
+        sphere.position.set(x, y, z);
+        sphere.castShadow = true;
+        sphere.receiveShadow = true;
+        sphere.userData.isUserCreated = true;
+        this.scene.add(sphere);
+    }
+    
+    createLinea(cantidad, direccion) {
+        for (let i = 0; i < cantidad; i++) {
+            let x = 0, z = 0;
+            if (direccion === 'x') {
+                x = i * 3;
+            } else if (direccion === 'z') {
+                z = i * 3;
+            }
+            this.createCuboAt(x, 1, z);
         }
+    }
+    
+    changeFloorColor(colorName) {
+        const colors = {
+            'rojo': 0xff0000,
+            'verde': 0x00ff00,
+            'azul': 0x0000ff,
+            'amarillo': 0xffff00,
+            'morado': 0xff00ff,
+            'naranja': 0xff8000
+        };
+        
+        const color = colors[colorName] || 0x00ff00;
+        this.scene.children.forEach(child => {
+            if (child.geometry && child.geometry.type === 'PlaneGeometry') {
+                child.material.color.setHex(color);
+            }
+        });
     }
 
     startGame() {
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('gameWorld').classList.remove('hidden');
         this.isPlaying = true;
-        
-        // Personalizar instrucciones según el dispositivo
-        const instructions = document.getElementById('instructions');
-        const instructionText = instructions.querySelector('.instruction-text');
-        
-        if (this.isMobile) {
-            instructionText.innerHTML = `
-                <h3>Controles Táctiles</h3>
-                <p><strong>Joystick izquierdo</strong> - Caminar</p>
-                <p><strong>Área derecha</strong> - Mirar alrededor</p>
-                <p><strong>Botón saltar</strong> - Saltar</p>
-                <p>Toca la pantalla para comenzar</p>
-            `;
-        }
-        
         this.animate();
     }
 
     startPointerLock() {
-        if (this.isMobile) {
-            // En móviles, solo ocultar instrucciones
-            document.getElementById('instructions').style.display = 'none';
-        } else {
-            // En PC, activar pointer lock
+        if (!this.isMobile && this.controls) {
             this.controls.lock();
-            document.getElementById('instructions').style.display = 'none';
         }
     }
 
