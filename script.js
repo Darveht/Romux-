@@ -50,8 +50,11 @@ class Mundo3D {
             }
         });
 
-        // Detectar dispositivo móvil
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // Detectar dispositivo móvil de forma más completa
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                       window.innerWidth <= 768 || 
+                       'ontouchstart' in window || 
+                       navigator.maxTouchPoints > 0;
         
         if (this.isMobile) {
             this.setupMobileControls();
@@ -93,8 +96,15 @@ class Mundo3D {
         lookArea.innerHTML = '<p>Arrastra para mirar</p>';
         gameContainer.appendChild(lookArea);
         
+        // Botón de salto
+        const jumpButton = document.createElement('div');
+        jumpButton.className = 'jump-button';
+        jumpButton.innerHTML = '↑';
+        gameContainer.appendChild(jumpButton);
+        
         this.setupJoystickEvents(joystick);
         this.setupLookEvents(lookArea);
+        this.setupJumpButton(jumpButton);
     }
 
     setupJoystickEvents(joystick) {
@@ -169,6 +179,16 @@ class Mundo3D {
             
             lastTouchX = touch.clientX;
             lastTouchY = touch.clientY;
+        });
+    }
+
+    setupJumpButton(jumpButton) {
+        jumpButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.canJump === true) {
+                this.velocity.y += 350;
+                this.canJump = false;
+            }
         });
     }
 
@@ -326,35 +346,36 @@ class Mundo3D {
     }
 
     setupRobloxControls() {
-        try {
-            this.controls = new THREE.PointerLockControls(this.camera, document.body);
-            
-            this.moveForward = false;
-            this.moveBackward = false;
-            this.moveLeft = false;
-            this.moveRight = false;
-            this.canJump = false;
-            
-            this.velocity = new THREE.Vector3();
-            this.direction = new THREE.Vector3();
-            
-            // Controles de teclado
-            document.addEventListener('keydown', (event) => this.onKeyDown(event));
-            document.addEventListener('keyup', (event) => this.onKeyUp(event));
-            
-            // Escape para salir del pointer lock
-            this.controls.addEventListener('unlock', () => {
-                document.getElementById('instructions').style.display = 'flex';
-            });
-            
-            // Controles táctiles para móvil
-            if (this.isMobile) {
-                this.setupTouchControls();
-            }
-        } catch (error) {
-            console.error('Error configurando controles:', error);
-            // Fallback para dispositivos que no soportan PointerLock
+        this.moveForward = false;
+        this.moveBackward = false;
+        this.moveLeft = false;
+        this.moveRight = false;
+        this.canJump = false;
+        
+        this.velocity = new THREE.Vector3();
+        this.direction = new THREE.Vector3();
+        
+        if (this.isMobile) {
+            // Para móviles, usar controles táctiles directamente
+            this.setupTouchControls();
             this.setupAlternativeControls();
+        } else {
+            // Para PC, usar PointerLock
+            try {
+                this.controls = new THREE.PointerLockControls(this.camera, document.body);
+                
+                // Controles de teclado
+                document.addEventListener('keydown', (event) => this.onKeyDown(event));
+                document.addEventListener('keyup', (event) => this.onKeyUp(event));
+                
+                // Escape para salir del pointer lock
+                this.controls.addEventListener('unlock', () => {
+                    document.getElementById('instructions').style.display = 'flex';
+                });
+            } catch (error) {
+                console.error('Error configurando controles:', error);
+                this.setupAlternativeControls();
+            }
         }
     }
 
@@ -492,12 +513,33 @@ class Mundo3D {
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('gameWorld').classList.remove('hidden');
         this.isPlaying = true;
+        
+        // Personalizar instrucciones según el dispositivo
+        const instructions = document.getElementById('instructions');
+        const instructionText = instructions.querySelector('.instruction-text');
+        
+        if (this.isMobile) {
+            instructionText.innerHTML = `
+                <h3>Controles Táctiles</h3>
+                <p><strong>Joystick izquierdo</strong> - Caminar</p>
+                <p><strong>Área derecha</strong> - Mirar alrededor</p>
+                <p><strong>Botón saltar</strong> - Saltar</p>
+                <p>Toca la pantalla para comenzar</p>
+            `;
+        }
+        
         this.animate();
     }
 
     startPointerLock() {
-        this.controls.lock();
-        document.getElementById('instructions').style.display = 'none';
+        if (this.isMobile) {
+            // En móviles, solo ocultar instrucciones
+            document.getElementById('instructions').style.display = 'none';
+        } else {
+            // En PC, activar pointer lock
+            this.controls.lock();
+            document.getElementById('instructions').style.display = 'none';
+        }
     }
 
     backToEditor() {
@@ -526,8 +568,6 @@ class Mundo3D {
     }
 
     updateMovement() {
-        if (!this.controls.isLocked) return;
-        
         const time = performance.now();
         const delta = (time - this.lastTime) / 1000;
         
@@ -546,15 +586,37 @@ class Mundo3D {
             this.velocity.x -= this.direction.x * 400.0 * delta;
         }
         
-        this.controls.moveRight(-this.velocity.x * delta);
-        this.controls.moveForward(-this.velocity.z * delta);
-        
-        this.controls.getObject().position.y += (this.velocity.y * delta);
-        
-        if (this.controls.getObject().position.y < 5) {
-            this.velocity.y = 0;
-            this.controls.getObject().position.y = 5;
-            this.canJump = true;
+        if (this.isMobile) {
+            // Para móviles, mover la cámara directamente
+            const cameraDirection = new THREE.Vector3();
+            this.camera.getWorldDirection(cameraDirection);
+            
+            const right = new THREE.Vector3();
+            right.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
+            
+            this.camera.position.addScaledVector(cameraDirection, -this.velocity.z * delta);
+            this.camera.position.addScaledVector(right, -this.velocity.x * delta);
+            this.camera.position.y += (this.velocity.y * delta);
+            
+            if (this.camera.position.y < 5) {
+                this.velocity.y = 0;
+                this.camera.position.y = 5;
+                this.canJump = true;
+            }
+        } else {
+            // Para PC, usar PointerLock si está disponible
+            if (this.controls && this.controls.isLocked) {
+                this.controls.moveRight(-this.velocity.x * delta);
+                this.controls.moveForward(-this.velocity.z * delta);
+                
+                this.controls.getObject().position.y += (this.velocity.y * delta);
+                
+                if (this.controls.getObject().position.y < 5) {
+                    this.velocity.y = 0;
+                    this.controls.getObject().position.y = 5;
+                    this.canJump = true;
+                }
+            }
         }
         
         this.lastTime = time;
