@@ -487,6 +487,112 @@ body {
     }
 }
 
+/* Ventana de resultados Lua */
+.lua-results {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #4CAF50;
+    border-radius: 15px;
+    z-index: 3000;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    border-radius: 13px 13px 0 0;
+    color: white;
+}
+
+.results-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.close-results {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+
+.close-results:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.results-content {
+    padding: 20px;
+    color: white;
+}
+
+.execution-summary h4 {
+    color: #4CAF50;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.result-line {
+    margin: 8px 0;
+    padding: 8px 12px;
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 3px solid #4CAF50;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+}
+
+.lua-tip {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 8px;
+}
+
+.lua-tip strong {
+    color: #ffc107;
+}
+
+.lua-tip ul {
+    margin: 10px 0 0 20px;
+}
+
+.lua-tip li {
+    margin: 5px 0;
+}
+
+.lua-tip code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #4CAF50;
+    font-family: 'Courier New', monospace;
+}
+
 /* Pantalla táctil */
 @media (pointer: coarse) {
     .uber-button {
@@ -499,5 +605,11 @@ body {
     
     .ui-button {
         min-height: 44px;
+    }
+    
+    .lua-results {
+        width: 95%;
+        max-height: 80vh;
+        overflow-y: auto;
     }
 }

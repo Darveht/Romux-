@@ -493,19 +493,144 @@ class Mundo3D {
     }
 
     processLuaCode() {
-        // Simulación de procesamiento de código Lua
+        // Procesamiento mejorado del código Lua
         console.log('Procesando código Lua:', this.luaCode);
         
-        // Aquí simularemos la ejecución del código Lua
+        // Crear una ventana de resultados para mostrar la ejecución
+        this.showLuaResults();
+        
+        let executedCommands = [];
+        
+        // Procesar diferentes comandos Lua
         if (this.luaCode.includes('crearCubo')) {
             console.log('Ejecutando: crearCubo()');
             this.createRandomCube();
+            executedCommands.push('✅ crearCubo() - Cubo creado exitosamente');
         }
         
         if (this.luaCode.includes('moverJugador')) {
             console.log('Ejecutando: moverJugador()');
-            // Mover cámara a nueva posición
             this.camera.position.set(0, 10, 5);
+            executedCommands.push('✅ moverJugador() - Jugador movido a nueva posición');
+        }
+        
+        // Buscar más comandos Lua
+        if (this.luaCode.includes('crearEsfera')) {
+            this.createSphere();
+            executedCommands.push('✅ crearEsfera() - Esfera creada');
+        }
+        
+        if (this.luaCode.includes('cambiarColor')) {
+            this.changeWorldColors();
+            executedCommands.push('✅ cambiarColor() - Colores del mundo cambiados');
+        }
+        
+        if (this.luaCode.includes('crearTorre')) {
+            this.createTower();
+            executedCommands.push('✅ crearTorre() - Torre construida');
+        }
+        
+        // Contar líneas de código
+        const codeLines = this.luaCode.split('\n').filter(line => line.trim().length > 0);
+        executedCommands.push(`📊 ${codeLines.length} líneas de código procesadas`);
+        
+        // Mostrar resultados
+        this.displayLuaResults(executedCommands);
+    }
+    
+    showLuaResults() {
+        // Crear ventana de resultados si no existe
+        if (!document.getElementById('luaResults')) {
+            const resultsWindow = document.createElement('div');
+            resultsWindow.id = 'luaResults';
+            resultsWindow.className = 'lua-results';
+            resultsWindow.innerHTML = `
+                <div class="results-header">
+                    <h3>🌟 Resultados del Código Lua</h3>
+                    <button class="close-results">×</button>
+                </div>
+                <div class="results-content">
+                    <p>Procesando código...</p>
+                </div>
+            `;
+            document.body.appendChild(resultsWindow);
+            
+            // Cerrar ventana
+            resultsWindow.querySelector('.close-results').addEventListener('click', () => {
+                resultsWindow.remove();
+            });
+        }
+    }
+    
+    displayLuaResults(commands) {
+        const resultsWindow = document.getElementById('luaResults');
+        if (resultsWindow) {
+            const content = resultsWindow.querySelector('.results-content');
+            content.innerHTML = `
+                <div class="execution-summary">
+                    <h4>Ejecución Completada:</h4>
+                    ${commands.map(cmd => `<p class="result-line">${cmd}</p>`).join('')}
+                </div>
+                <div class="lua-tip">
+                    <strong>💡 Tip:</strong> Prueba agregando estos comandos a tu código Lua:
+                    <ul>
+                        <li><code>crearEsfera()</code> - Crea una esfera</li>
+                        <li><code>cambiarColor()</code> - Cambia los colores</li>
+                        <li><code>crearTorre()</code> - Construye una torre</li>
+                    </ul>
+                </div>
+            `;
+        }
+    }
+    
+    createSphere() {
+        const geometry = new THREE.SphereGeometry(2, 16, 16);
+        const material = new THREE.MeshLambertMaterial({
+            color: Math.random() * 0xffffff
+        });
+        const sphere = new THREE.Mesh(geometry, material);
+        
+        sphere.position.set(
+            (Math.random() - 0.5) * 30,
+            5,
+            (Math.random() - 0.5) * 30
+        );
+        
+        sphere.castShadow = true;
+        sphere.receiveShadow = true;
+        this.scene.add(sphere);
+    }
+    
+    changeWorldColors() {
+        // Cambiar color del cielo
+        this.scene.background = new THREE.Color(Math.random() * 0xffffff);
+        
+        // Cambiar colores de objetos existentes
+        this.scene.children.forEach(child => {
+            if (child.material && child.material.color) {
+                child.material.color.setHex(Math.random() * 0xffffff);
+            }
+        });
+    }
+    
+    createTower() {
+        const towerHeight = 5;
+        for (let i = 0; i < towerHeight; i++) {
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshLambertMaterial({
+                color: 0x8B4513 // Color marrón para la torre
+            });
+            const block = new THREE.Mesh(geometry, material);
+            
+            block.position.set(
+                10, // Posición fija en X
+                1 + (i * 2), // Apilar bloques
+                10 // Posición fija en Z
+            );
+            
+            block.castShadow = true;
+            block.receiveShadow = true;
+            this.scene.add(block);
         }
     }
 
